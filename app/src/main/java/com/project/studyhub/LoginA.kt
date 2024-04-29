@@ -67,6 +67,7 @@ class LoginA : ComponentActivity() {
     private fun moveToRegister(){
         val intent = Intent(this, RegisterA::class.java)
         startActivity(intent)
+        finish()
     }
 
     private fun moveToMain(){
@@ -86,7 +87,7 @@ class LoginA : ComponentActivity() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(Color.White),
         ){
             Column(  modifier = Modifier
                 .fillMaxSize()
@@ -118,12 +119,12 @@ class LoginA : ComponentActivity() {
                 )
                 Text(
                     modifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally),
-                    text = "",
+                    text = "Login",
                     color = Color.Black,
                     fontWeight = FontWeight.Normal,
                     fontSize = 16.sp
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(30.dp))
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -172,13 +173,13 @@ class LoginA : ComponentActivity() {
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
-                    modifier = Modifier.fillMaxWidth().clickable { moveToRegister() },
+                    modifier = Modifier.fillMaxWidth().clickable {  },
                     text = "Register",
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()

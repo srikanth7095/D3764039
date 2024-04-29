@@ -41,8 +41,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import com.project.studyhub.ui.theme.StudyHubTheme
 
 class RegisterA : ComponentActivity(){
@@ -60,42 +58,10 @@ class RegisterA : ComponentActivity(){
         startActivity(intent)
         finish()
     }
-    private fun registerUser(auth: FirebaseAuth, username: String, email: String, password: String) {
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val firebaseUser = auth.currentUser
-                    val uid = firebaseUser?.uid
-
-                    // Save user data to Realtime Database
-                    if (uid != null) {
-                        val databaseReference = FirebaseDatabase.getInstance().reference.child("users").child(uid)
-                        val userData = hashMapOf(
-                            "username" to username,
-                            "email" to email,
-                            "password" to password
-                        )
-                        databaseReference.setValue(userData)
-                            .addOnCompleteListener { dbTask ->
-                                if (dbTask.isSuccessful) {
-                                    Toast.makeText(this,"Registration Successful",Toast.LENGTH_SHORT).show()
-                                    moveToLogin()
-                                } else {
-                                    Toast.makeText(this,"Database Error",Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                    }
-                } else {
-                    Toast.makeText(this,"Something went wrong",Toast.LENGTH_SHORT).show()
-                }
-            }
-    }
 
     @Preview
     @Composable
     private fun RegisterScreen() {
-        val auth = FirebaseAuth.getInstance()
-        val username = remember { mutableStateOf("") }
         val email = remember { mutableStateOf("") }
         val password = remember { mutableStateOf("") }
         val gradientColor = listOf(Color(0xFFFFFFFF), Color(0xFF3291cb))
@@ -135,7 +101,7 @@ class RegisterA : ComponentActivity(){
                 }
                 Spacer(Modifier.height(15.dp))
                 Text(
-                    text = "Create new account",
+                    text = "Create new Account",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
@@ -145,9 +111,9 @@ class RegisterA : ComponentActivity(){
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.Transparent),
-                    value = username.value,
+                    value = email.value,
                     onValueChange = {
-                        username.value = it
+                        email.value = it
                     },
                     leadingIcon = {
                         Icon(Icons.Default.Person, contentDescription = "person")
@@ -203,7 +169,7 @@ class RegisterA : ComponentActivity(){
                         .fillMaxWidth()
                         .padding(start = 32.dp, end = 32.dp),
                     onClick = {
-                        registerUser(auth, username.value, email.value, password.value)
+                        //login(email.value,password.value)
                     },
                     contentPadding = PaddingValues(),
                     colors = ButtonDefaults.buttonColors(

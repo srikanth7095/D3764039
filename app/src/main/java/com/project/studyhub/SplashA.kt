@@ -62,13 +62,18 @@ private fun StudyApp() {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    // Simulate a splash screen delay
     coroutineScope.launch {
-        delay(2000)
+        delay(2000) // Adjust the delay duration as needed
         navController.navigate("main")
+        // Start MainActivity
         val intent = Intent(context, LoginA::class.java)
         ContextCompat.startActivity(context, intent, null)
+
+        // Finish the SplashActivity
         (context as? Activity)?.finish()
     }
+
     Surface(color = Color.White) {
         NavHost(navController = navController, startDestination = "splash") {
             composable("splash") { SplashScreen() }
