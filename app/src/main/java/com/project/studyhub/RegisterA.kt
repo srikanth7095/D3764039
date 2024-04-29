@@ -1,7 +1,9 @@
 package com.project.studyhub
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +26,9 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -36,11 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import com.project.studyhub.ui.theme.StudyHubTheme
 
 class RegisterA : ComponentActivity(){
@@ -58,14 +66,57 @@ class RegisterA : ComponentActivity(){
         startActivity(intent)
         finish()
     }
+    private fun registerUser(context: Context, auth: FirebaseAuth, username: String, email: String, password: String, setLoading: (Boolean) -> Unit) {
+        if (email.isBlank() || password.isBlank() || username.isBlank()) {
+            setLoading(false)
+            Toast.makeText(context, "Field should not be empty", Toast.LENGTH_SHORT).show()
+            return
+        }
+        else{
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        setLoading(false)
+                        val firebaseUser = auth.currentUser
+                        val uid = firebaseUser?.uid
+
+                        // Save user data to Realtime Database
+                        if (uid != null) {
+                            val databaseReference = FirebaseDatabase.getInstance().reference.child("users").child(uid)
+                            val userData = hashMapOf(
+                                "username" to username,
+                                "email" to email,
+                                "password" to password
+                            )
+                            databaseReference.setValue(userData)
+                                .addOnCompleteListener { dbTask ->
+                                    if (dbTask.isSuccessful) {
+                                        Toast.makeText(this,"Registration Successful",Toast.LENGTH_SHORT).show()
+                                        readUserData(context,email,setLoading)
+                                    } else {
+                                        Toast.makeText(this,"Database Error",Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                        }
+                    } else {
+                        setLoading(false)
+                        Toast.makeText(this,task.exception?.localizedMessage,Toast.LENGTH_SHORT).show()
+                    }
+                }
+        }
+    }
 
     @Preview
     @Composable
     private fun RegisterScreen() {
+        val auth = FirebaseAuth.getInstance()
+        val username = remember { mutableStateOf("") }
         val email = remember { mutableStateOf("") }
         val password = remember { mutableStateOf("") }
+        val context = LocalContext.current
+        val (isLoading, setLoading) = remember { mutableStateOf(false) }
         val gradientColor = listOf(Color(0xFFFFFFFF), Color(0xFF3291cb))
-        val backgroundColor = Color(0xFFCA1212)
+        val backgroundColor = Color(0xFF3291cb)
 
         Box(
             modifier = Modifier
@@ -101,7 +152,7 @@ class RegisterA : ComponentActivity(){
                 }
                 Spacer(Modifier.height(15.dp))
                 Text(
-                    text = "Create new Account",
+                    text = "Create new account",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
@@ -111,9 +162,9 @@ class RegisterA : ComponentActivity(){
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.Transparent),
-                    value = email.value,
+                    value = username.value,
                     onValueChange = {
-                        email.value = it
+                        username.value = it
                     },
                     leadingIcon = {
                         Icon(Icons.Default.Person, contentDescription = "person")
@@ -169,7 +220,8 @@ class RegisterA : ComponentActivity(){
                         .fillMaxWidth()
                         .padding(start = 32.dp, end = 32.dp),
                     onClick = {
-                        //login(email.value,password.value)
+                        setLoading(true)
+                        registerUser(context ,auth, username.value, email.value, password.value,setLoading)
                     },
                     contentPadding = PaddingValues(),
                     colors = ButtonDefaults.buttonColors(
@@ -198,7 +250,41 @@ class RegisterA : ComponentActivity(){
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
-
+                Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Already have an account?",
+                        color = Color.Black,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(onClick = { moveToLogin() },
+                        colors = ButtonDefaults.buttonColors(backgroundColor)
+                    ) {
+                        Text(text = "Login")
+                    }
+                }
+            }
+//            if (isLoading) {
+//
+//                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+//            }
+            if (isLoading) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp),
+                    elevation = CardDefaults.elevatedCardElevation(5.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .size(100.dp)
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
         }
     }

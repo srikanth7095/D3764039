@@ -38,6 +38,8 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.project.studyhub.ui.theme.StudyHubTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -62,18 +64,13 @@ private fun StudyApp() {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Simulate a splash screen delay
     coroutineScope.launch {
-        delay(2000) // Adjust the delay duration as needed
+        delay(2000)
         navController.navigate("main")
-        // Start MainActivity
         val intent = Intent(context, LoginA::class.java)
         ContextCompat.startActivity(context, intent, null)
-
-        // Finish the SplashActivity
         (context as? Activity)?.finish()
     }
-
     Surface(color = Color.White) {
         NavHost(navController = navController, startDestination = "splash") {
             composable("splash") { SplashScreen() }
